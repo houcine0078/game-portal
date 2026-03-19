@@ -1,0 +1,31 @@
+/* Smooth Cinematic Fade Entry */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@keyframes smoothCinematicFade {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.animate-smooth-fade {
+  /* The cubic-bezier makes it start slightly fast and then smoothly glide to a stop */
+  animation: smoothCinematicFade 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Keep your description box animation here too! */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
