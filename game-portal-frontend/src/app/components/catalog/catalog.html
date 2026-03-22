@@ -26,7 +26,7 @@
         <h3 class="text-xl font-bold mb-2 tracking-wide">{{ game.title }}</h3>
         <p class="text-gray-400 text-sm mb-6 line-clamp-2">{{ game.description }}</p>
         
-        <button class="w-full py-2.5 bg-gray-800 hover:bg-[#53a6eb] text-white font-bold rounded-lg transition-colors duration-300 tracking-widest text-sm uppercase">
+        <button [routerLink]="game.gameUrl" class="w-full py-2.5 bg-gray-800 hover:bg-[#53a6eb] text-white font-bold rounded-lg transition-colors duration-300 tracking-widest text-sm uppercase cursor-pointer">
           Play Now
         </button>
       </div>

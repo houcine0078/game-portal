@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GameService } from '../../services/game'; // Adjust path if needed
+import { GameService } from '../../services/game'; 
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './catalog.html'
 })
 export class CatalogComponent implements OnInit {

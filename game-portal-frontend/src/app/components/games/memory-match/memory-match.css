@@ -1,0 +1,20 @@
+/* Gives the 3D depth illusion */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* Tells the card to preserve 3D space during the rotation */
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+/* Hides the back of the card when it is facing away from you */
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* The actual flip rotation */
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
