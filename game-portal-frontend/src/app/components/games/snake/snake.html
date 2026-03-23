@@ -1,0 +1,48 @@
+<div class="min-h-screen bg-[#0f172a] text-white flex flex-col items-center py-8 font-sans relative">
+  
+  <div class="w-full max-w-2xl flex justify-start mb-4 px-4">
+    <button routerLink="/catalog" class="px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-red-600 hover:border-red-500 text-gray-300 hover:text-white font-bold rounded-lg transition-all duration-300 flex items-center gap-2 text-sm tracking-wider uppercase shadow-lg cursor-pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+      </svg>
+      Exit Arcade
+    </button>
+  </div>
+
+  <div class="w-full max-w-lg flex justify-between items-center mb-6 px-4">
+    <h1 class="text-3xl font-bold tracking-widest uppercase text-green-500">Snake</h1>
+    <div class="bg-gray-800 px-6 py-2 rounded-lg border border-gray-700 shadow-inner">
+      <p class="text-xl font-bold tracking-widest text-white">Score: <span class="text-green-400">{{ score }}</span></p>
+    </div>
+  </div>
+
+  <div class="relative w-full max-w-lg mx-auto p-2 bg-gray-900 rounded-xl border border-gray-700 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+    
+    <div *ngIf="gameOver" class="absolute inset-0 z-20 bg-black/80 rounded-xl flex flex-col items-center justify-center backdrop-blur-sm animate-fade-in">
+      <h2 class="text-4xl font-black text-red-500 mb-2 uppercase tracking-widest drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]">Game Over</h2>
+      <p class="text-xl text-gray-300 mb-8 font-medium">Final Score: {{ score }}</p>
+      <button (click)="startGame()" class="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-colors duration-300 tracking-widest uppercase shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+        Play Again
+      </button>
+    </div>
+
+    <div class="snake-grid bg-gray-700 border-2 border-gray-600 rounded">
+      
+      <div *ngFor="let cell of board" 
+           class="w-full aspect-square transition-all duration-75"
+           [ngClass]="{
+             'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] rounded-sm z-10 relative': isSnakeCell(cell.x, cell.y) && !isSnakeHead(cell.x, cell.y),
+             'bg-green-400 shadow-[0_0_12px_rgba(74,222,128,1)] rounded-md scale-110 z-20 relative': isSnakeHead(cell.x, cell.y),
+             'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)] rounded-full animate-pulse scale-90 z-10 relative': isFoodCell(cell.x, cell.y),
+             'bg-gray-800': !isSnakeCell(cell.x, cell.y) && !isFoodCell(cell.x, cell.y)
+           }">
+      </div>
+      
+    </div>
+  </div>
+
+  <p class="mt-8 text-gray-500 text-sm tracking-widest uppercase flex items-center gap-2">
+    Use <span class="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-white font-bold">WASD or Arrows</span> to move
+  </p>
+
+</div>
