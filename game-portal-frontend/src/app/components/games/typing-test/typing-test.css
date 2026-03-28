@@ -1,0 +1,302 @@
+/* typing-test.css — matches original Tailwind dark theme */
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+:host {
+  display: block;
+  background-color: #111827; /* gray-900 */
+  min-height: 100vh;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #d1d5db; /* gray-300 */
+}
+
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.brand {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #f3f4f6; /* gray-100 */
+  letter-spacing: 0.05em;
+}
+
+.brand .accent {
+  color: #facc15; /* yellow-400 — monkeytype-style accent */
+}
+
+/* ── Mode pills ─────────────────────────────────────────────────────────── */
+.mode-pills {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pill {
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: transparent;
+  color: #6b7280; /* gray-500 */
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.pill:hover {
+  color: #d1d5db; /* gray-300 */
+}
+
+.pill.active {
+  color: #facc15; /* yellow-400 */
+}
+
+/* ── Stats bar ──────────────────────────────────────────────────────────── */
+.stats-bar {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #facc15; /* yellow-400 */
+  line-height: 1;
+}
+
+.stat-val.timer-warn {
+  color: #ef4444; /* red-500 */
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: #6b7280; /* gray-500 */
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 2rem;
+  background-color: #374151; /* gray-700 */
+}
+
+/* ── Progress bar ───────────────────────────────────────────────────────── */
+.progress-track {
+  height: 2px;
+  background-color: #374151; /* gray-700 */
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #facc15; /* yellow-400 */
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* ── Words display ──────────────────────────────────────────────────────── */
+.words-box {
+  font-size: 1.25rem;
+  line-height: 2.25;
+  color: #6b7280; /* gray-500 — pending/default */
+  min-height: 9rem;
+  max-height: 9rem;
+  overflow: hidden;
+  cursor: text;
+  user-select: none;
+  margin-bottom: 1.5rem;
+  outline: none;
+}
+
+.word {
+  display: inline-block;
+  margin-right: 0.5rem;
+  position: relative;
+}
+
+/* Blinking caret */
+.char.cursor::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background-color: #facc15;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* Character states — matching original Tailwind classes exactly */
+.char {
+  transition: color 0.05s;
+}
+
+.char.correct {
+  color: #f3f4f6; /* gray-100 — original: text-gray-100 */
+}
+
+.char.wrong {
+  color: #ef4444; /* red-500 — original: text-red-500 */
+}
+
+.char.extra {
+  color: #ef4444;
+  opacity: 0.5;
+}
+
+.char.pending {
+  color: #6b7280; /* gray-500 — original: text-gray-500 */
+}
+
+/* Whole-word wrong: recolour already-"correct" chars to red */
+.word.wrong-word .char.correct {
+  color: #ef4444;
+}
+
+/* ── Hint ────────────────────────────────────────────────────────────────── */
+.hint {
+  font-size: 0.75rem;
+  color: #4b5563; /* gray-600 */
+  text-align: center;
+  transition: opacity 0.3s;
+}
+
+.hint.dim {
+  opacity: 0.3;
+}
+
+.hint kbd {
+  background-color: #1f2937; /* gray-800 */
+  border: 1px solid #374151; /* gray-700 */
+  border-radius: 0.25rem;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 0.7rem;
+  color: #9ca3af; /* gray-400 */
+}
+
+/* ── Results screen ─────────────────────────────────────────────────────── */
+.results {
+  padding: 1rem 0;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 500px) {
+  .results-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.result-card {
+  background-color: #1f2937; /* gray-800 */
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.result-card .big {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+  color: #facc15; /* yellow-400 */
+}
+
+.result-card .big.red   { color: #ef4444; }
+.result-card .big.green { color: #facc15; }
+
+.result-card .label {
+  font-size: 0.65rem;
+  color: #6b7280; /* gray-500 */
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── WPM chart ──────────────────────────────────────────────────────────── */
+.chart-wrap {
+  margin-bottom: 2rem;
+}
+
+.chart-title {
+  font-size: 0.65rem;
+  color: #6b7280; /* gray-500 */
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 60px;
+}
+
+.bar {
+  flex: 1;
+  background-color: #facc15;
+  border-radius: 2px 2px 0 0;
+  opacity: 0.5;
+  min-height: 2px;
+  transition: opacity 0.15s;
+}
+
+.bar:hover { opacity: 1; }
+
+/* ── Restart button ─────────────────────────────────────────────────────── */
+.restart-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid #374151; /* gray-700 */
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #9ca3af; /* gray-400 */
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  letter-spacing: 0.05em;
+}
+
+.restart-btn:hover {
+  background-color: #1f2937; /* gray-800 */
+  color: #f3f4f6;
+  border-color: #6b7280;
+}

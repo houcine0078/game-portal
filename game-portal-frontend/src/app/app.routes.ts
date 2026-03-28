@@ -3,7 +3,9 @@ import { LoginComponent } from './components/auth/login/login';
 import { RegisterComponent } from './components/auth/register/register';
 import { CatalogComponent } from './components/catalog/catalog';
 import { MemoryMatchComponent } from './components/games/memory-match/memory-match';
-import { SnakeComponent } from './components/games/snake/snake';
+import { TypingTestComponent } from './components/games/typing-test/typing-test';
+
+
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -11,6 +13,6 @@ export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
     { path: 'catalog', component: CatalogComponent },
     { path: 'memory-match', component: MemoryMatchComponent },
-    { path: 'snake', component: SnakeComponent },
+    { path: 'typing-test', component: TypingTestComponent },
     { path: '**', redirectTo: '/login' }
 ];

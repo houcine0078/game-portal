@@ -1,0 +1,106 @@
+<!-- typing-test.html -->
+<div class="app">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="brand">key<span class="accent">rush</span></div>
+    <div class="mode-pills">
+      <button
+        *ngFor="let t of TIME_OPTIONS"
+        class="pill"
+        [class.active]="t === selectedTime"
+        (click)="setTime(t)"
+      >{{ t === 120 ? '2min' : t + 's' }}</button>
+    </div>
+  </header>
+
+  <!-- ── Game area ────────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="status !== 'finished'">
+
+    <!-- Live stats bar -->
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-val" [class.timer-warn]="timeLeft <= 5">{{ timeLeft }}</span>
+        <span class="stat-label">seconds</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-val">{{ liveWpm }}</span>
+        <span class="stat-label">wpm</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-val">{{ liveAccuracy }}</span>
+        <span class="stat-label">accuracy</span>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="progress"></div>
+    </div>
+
+    <!-- Words display -->
+    <div class="words-box" id="words-box" tabindex="0">
+      <span
+        *ngFor="let word of words; let wi = index"
+        class="word"
+        [class.active]="wi === wordIndex"
+        [class.wrong-word]="isWordWrong(wi)"
+        [id]="'word-' + wi"
+      >
+        <span
+          *ngFor="let ch of getChars(wi)"
+          [class]="ch.class"
+          [class.cursor]="ch.isCursor"
+        >{{ ch.display }}</span>
+      </span>
+    </div>
+
+    <!-- Hint -->
+    <p class="hint" [class.dim]="status === 'playing'">
+      start typing to begin &nbsp;|&nbsp; <kbd>Tab</kbd> to restart
+    </p>
+
+  </ng-container>
+
+  <!-- ── Results screen ───────────────────────────────────────────────────── -->
+  <div class="results" *ngIf="status === 'finished'">
+
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="big red">{{ wpm }}</div>
+        <div class="label">wpm</div>
+      </div>
+      <div class="result-card">
+        <div class="big green">{{ accuracy }}%</div>
+        <div class="label">accuracy</div>
+      </div>
+      <div class="result-card">
+        <div class="big">{{ correctWords }}</div>
+        <div class="label">correct words</div>
+      </div>
+      <div class="result-card">
+        <div class="big">{{ correctChars }}</div>
+        <div class="label">correct chars</div>
+      </div>
+    </div>
+
+    <!-- WPM-over-time chart -->
+    <div class="chart-wrap">
+      <p class="chart-title">wpm over time</p>
+      <div class="bar-chart">
+        <div
+          *ngFor="let h of chartBars; let i = index"
+          class="bar"
+          [style.height.px]="h"
+          [title]="wpmHistory[i] + ' wpm'"
+        ></div>
+      </div>
+    </div>
+
+    <button class="restart-btn" (click)="restartGame()">try again →</button>
+
+  </div>
+
+</div>
