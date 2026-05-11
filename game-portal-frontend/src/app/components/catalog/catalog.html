@@ -1,21 +1,95 @@
 <div class="min-h-screen bg-[#0f172a] p-8 font-sans text-white">
-  
+
   <div class="max-w-7xl mx-auto mb-12 flex justify-between items-center border-b border-gray-800 pb-6">
     <h1 class="text-4xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#53a6eb] to-purple-400">
       Arcade Catalog
     </h1>
-    <div class="h-10 w-10 rounded-full bg-gray-700 border-2 border-[#53a6eb] flex items-center justify-center cursor-pointer hover:bg-gray-600 transition">
-      <span class="text-sm font-bold">P1</span>
+
+    <!-- Right side actions -->
+    <div class="flex items-center gap-4">
+
+    <button routerLink="/leaderboard"
+            class="flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-700 hover:border-[#53a6eb]/50 hover:bg-gray-700 text-gray-300 hover:text-white font-semibold rounded-lg transition text-sm tracking-wider uppercase cursor-pointer">
+      🏆 Leaderboard
+    </button>
+
+    <!-- Profile avatar + dropdown -->
+    <div class="relative">
+
+      <!-- Header avatar button — color changes with selection -->
+      <button
+        (click)="toggleProfile()"
+        class="h-10 w-10 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-300"
+        [style.background-color]="selectedColor.dark"
+        [style.border-color]="selectedColor.bg">
+        <span class="text-sm font-bold" [style.color]="selectedColor.bg">{{ initials }}</span>
+      </button>
+
+      <!-- Dropdown panel -->
+      <div
+        *ngIf="showProfile"
+        class="absolute right-0 top-13 w-72 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+
+        <!-- Header with large avatar -->
+        <div class="px-5 pt-6 pb-5 flex flex-col items-center border-b border-gray-800">
+          <div class="h-16 w-16 rounded-full border-2 flex items-center justify-center mb-3 transition-all duration-300"
+               [style.background-color]="selectedColor.dark"
+               [style.border-color]="selectedColor.bg">
+            <span class="text-2xl font-bold" [style.color]="selectedColor.bg">{{ initials }}</span>
+          </div>
+          <p class="font-bold text-lg tracking-wide">{{ userProfile?.username ?? '—' }}</p>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4">
+
+          <!-- Member since -->
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500 uppercase tracking-wider text-xs">Member since</span>
+            <span class="text-gray-300 font-medium">
+              {{ userProfile?.createdAt ? (userProfile!.createdAt | date:'MMM d, yyyy') : 'N/A' }}
+            </span>
+          </div>
+
+          <!-- Avatar color picker -->
+          <div>
+            <p class="text-gray-500 uppercase tracking-wider text-xs mb-2">Avatar color</p>
+            <div class="flex gap-2 flex-wrap">
+              <button
+                *ngFor="let color of avatarColors"
+                (click)="pickColor(color)"
+                class="h-7 w-7 rounded-full cursor-pointer transition-transform hover:scale-110 focus:outline-none"
+                [style.background-color]="color.bg"
+                [style.box-shadow]="selectedColor.id === color.id ? '0 0 0 2px #1e293b, 0 0 0 4px ' + color.bg : 'none'"
+                [title]="color.id">
+              </button>
+            </div>
+          </div>
+
+          <hr class="border-gray-800">
+
+          <button
+            (click)="logout()"
+            class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold rounded-lg transition text-sm uppercase tracking-wider border border-red-500/20 cursor-pointer">
+            Log Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Invisible overlay to close on outside click -->
+      <div *ngIf="showProfile" (click)="closeProfile()" class="fixed inset-0 z-40"></div>
     </div>
+
+    </div><!-- end right side actions -->
   </div>
 
   <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-    
-    <div *ngFor="let game of games" 
+
+    <div *ngFor="let game of games"
          class="group bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 shadow-lg hover:shadow-[0_0_25px_rgba(83,166,235,0.3)] transition-all duration-300 hover:-translate-y-2 cursor-pointer">
-      
+
       <div class="h-48 w-full overflow-hidden relative">
-        <img [src]="game.thumbnailUrl" alt="{{ game.title }}" 
+        <img [src]="game.thumbnailUrl" alt="{{ game.title }}"
              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
         <span class="absolute top-3 right-3 bg-black/70 backdrop-blur-sm text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider text-[#53a6eb] border border-[#53a6eb]/50">
           {{ game.category }}
@@ -25,7 +99,7 @@
       <div class="p-5">
         <h3 class="text-xl font-bold mb-2 tracking-wide">{{ game.title }}</h3>
         <p class="text-gray-400 text-sm mb-6 line-clamp-2">{{ game.description }}</p>
-        
+
         <button [routerLink]="game.gameUrl" class="w-full py-2.5 bg-gray-800 hover:bg-[#53a6eb] text-white font-bold rounded-lg transition-colors duration-300 tracking-widest text-sm uppercase cursor-pointer">
           Play Now
         </button>
@@ -34,9 +108,50 @@
     </div>
 
   </div>
-  
+
   <div *ngIf="games.length === 0" class="text-center mt-20 text-gray-500">
     <p class="text-xl">No games found in the database. Insert a coin!</p>
   </div>
 
+</div>
+
+<!-- Logout confirmation modal -->
+<div *ngIf="showLogoutConfirm"
+     class="fixed inset-0 z-[100] flex items-center justify-center">
+
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="cancelLogout()"></div>
+
+  <!-- Dialog -->
+  <div class="relative z-10 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+
+    <!-- Top accent bar -->
+    <div class="h-1 w-full bg-gradient-to-r from-red-500 to-red-400"></div>
+
+    <div class="p-8 text-center">
+      <!-- Icon -->
+      <div class="h-14 w-14 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </div>
+
+      <h2 class="text-xl font-bold text-white mb-2 tracking-wide">Log out?</h2>
+      <p class="text-gray-400 text-sm mb-8">You'll be returned to the login screen.</p>
+
+      <div class="flex gap-3">
+        <button
+          (click)="cancelLogout()"
+          class="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold rounded-xl transition text-sm cursor-pointer border border-gray-700">
+          Cancel
+        </button>
+        <button
+          (click)="confirmLogout()"
+          class="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition text-sm cursor-pointer">
+          Log Out
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>

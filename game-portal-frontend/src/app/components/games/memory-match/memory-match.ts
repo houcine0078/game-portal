@@ -1,6 +1,8 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'
+import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth';
+import { ScoreService } from '../../../services/score';
 
 export interface Card {
   id: number;
@@ -23,9 +25,14 @@ export class MemoryMatchComponent implements OnInit {
   lockBoard = false;
   matchesFound = 0;
   moves = 0;
+  gameWon = false;
+  scoreSaved = false;
 
-  // 1. Inject ChangeDetectorRef here!
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private scoreService: ScoreService
+  ) {}
 
   ngOnInit() {
     this.setupGame();
@@ -46,6 +53,8 @@ export class MemoryMatchComponent implements OnInit {
     this.matchesFound = 0;
     this.moves = 0;
     this.lockBoard = false;
+    this.gameWon = false;
+    this.scoreSaved = false;
   }
 
   flipCard(card: Card) {
@@ -62,27 +71,37 @@ export class MemoryMatchComponent implements OnInit {
 
   checkForMatch() {
     const [card1, card2] = this.flippedCards;
-    
+
     if (card1.icon === card2.icon) {
-      console.log("Match found! ", card1.icon);
       card1.isMatched = true;
       card2.isMatched = true;
       this.matchesFound++;
-      this.flippedCards = []; 
+      this.flippedCards = [];
+
+      if (this.matchesFound === 8 && !this.gameWon) {
+        this.gameWon = true;
+        this.saveScore();
+      }
     } else {
-      console.log("No match. Locking board for 1 second...");
       this.lockBoard = true;
-      
+
       setTimeout(() => {
-        console.log("Timer finished! Flipping cards back...");
         card1.isFlipped = false;
         card2.isFlipped = false;
         this.flippedCards = [];
         this.lockBoard = false;
-        
-        // 2. FORCE ANGULAR TO REDRAW THE SCREEN!
-        this.cdr.detectChanges(); 
-      }, 1000); 
+        this.cdr.detectChanges();
+      }, 1000);
     }
+  }
+
+  saveScore(): void {
+    const username = this.authService.getUsername();
+    if (!username) return;
+    this.scoreService.saveScore({ username, gameType: 'memory-match', score: this.moves })
+      .subscribe({
+        next: () => this.scoreSaved = true,
+        error: () => {}
+      });
   }
 }

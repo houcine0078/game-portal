@@ -4,15 +4,16 @@ import { RegisterComponent } from './components/auth/register/register';
 import { CatalogComponent } from './components/catalog/catalog';
 import { MemoryMatchComponent } from './components/games/memory-match/memory-match';
 import { TypingTestComponent } from './components/games/typing-test/typing-test';
-
-
+import { LeaderboardComponent } from './components/leaderboard/leaderboard';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
     { path: '', redirectTo: '/login', pathMatch: 'full' },
-    { path: 'catalog', component: CatalogComponent },
-    { path: 'memory-match', component: MemoryMatchComponent },
-    { path: 'typing-test', component: TypingTestComponent },
+    { path: 'catalog', component: CatalogComponent, canActivate: [authGuard] },
+    { path: 'memory-match', component: MemoryMatchComponent, canActivate: [authGuard] },
+    { path: 'typing-test', component: TypingTestComponent, canActivate: [authGuard] },
+    { path: 'leaderboard', component: LeaderboardComponent, canActivate: [authGuard] },
     { path: '**', redirectTo: '/login' }
 ];

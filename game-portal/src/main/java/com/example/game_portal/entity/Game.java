@@ -24,4 +24,11 @@ public class Game {
 
     // This would be the link to the actual HTML5 game file or external link
     private String gameUrl;
+
+    private String iframeUrl;
+
+    public void setIframeUrl(String iframeUrl) {
+        this.iframeUrl = iframeUrl;
+    }
+
 }

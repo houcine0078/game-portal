@@ -2,6 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface Game {
+  id: number;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  iframeUrl: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })

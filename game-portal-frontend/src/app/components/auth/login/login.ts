@@ -28,11 +28,10 @@ export class LoginComponent {
     const credentials = { username: this.username, password: this.password };
     
     this.authService.login(credentials).subscribe({
-      next: (res) => {
-        this.message = "Success! " + res;
-        
-        // Navigate to the catalog page after a short 800ms delay 
-        // so the user can actually see the success message
+      next: (res: any) => {
+        this.message = "Login successful!";
+        this.authService.saveToken(res.token);
+        this.authService.saveUsername(res.username);
         setTimeout(() => {
           this.router.navigate(['/catalog']);
         }, 800);

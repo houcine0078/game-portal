@@ -1,0 +1,124 @@
+<div class="min-h-screen bg-[#0f172a] p-8 font-sans text-white">
+
+  <!-- Header -->
+  <div class="max-w-5xl mx-auto mb-10 flex justify-between items-center border-b border-gray-800 pb-6">
+    <div>
+      <h1 class="text-4xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#53a6eb] to-purple-400">
+        Leaderboard
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">Best score per player — updated live</p>
+    </div>
+    <button routerLink="/catalog"
+            class="px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-gray-300 font-bold rounded-lg transition text-sm tracking-wider uppercase cursor-pointer">
+      ← Catalog
+    </button>
+  </div>
+
+  <!-- Two leaderboard columns -->
+  <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+
+    <!-- ── Memory Match ─────────────────────────────────────────────────── -->
+    <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+
+      <div class="px-6 py-5 border-b border-gray-800 bg-gradient-to-r from-blue-900/40 to-transparent">
+        <h2 class="text-xl font-bold tracking-wide flex items-center gap-2">
+          <span>🧩</span> Memory Match
+        </h2>
+        <p class="text-gray-500 text-xs mt-1 uppercase tracking-widest">Fewer moves = better</p>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loadingMemory" class="p-8 text-center text-gray-600 text-sm">Loading...</div>
+
+      <!-- Empty -->
+      <div *ngIf="!loadingMemory && memoryScores.length === 0" class="p-8 text-center text-gray-600 text-sm">
+        No scores yet. Be the first!
+      </div>
+
+      <!-- Table -->
+      <table *ngIf="!loadingMemory && memoryScores.length > 0" class="w-full text-sm">
+        <thead>
+          <tr class="text-gray-500 uppercase text-xs tracking-wider border-b border-gray-800">
+            <th class="px-6 py-3 text-left w-12">#</th>
+            <th class="px-3 py-3 text-left">Player</th>
+            <th class="px-3 py-3 text-right">Moves</th>
+            <th class="px-6 py-3 text-right">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of memoryScores; let i = index"
+              class="border-b border-gray-800/50 transition-colors"
+              [class.bg-[#53a6eb]/5]="entry.username === currentUser"
+              [class.hover:bg-gray-800/40]="entry.username !== currentUser"
+              [class.hover:bg-[#53a6eb]/10]="entry.username === currentUser">
+            <td class="px-6 py-4 text-center text-lg">{{ rankLabel(i) }}</td>
+            <td class="px-3 py-4 font-semibold flex items-center gap-2">
+              {{ entry.username }}
+              <span *ngIf="entry.username === currentUser"
+                    class="text-[10px] bg-[#53a6eb]/20 text-[#53a6eb] px-2 py-0.5 rounded-full font-normal">you</span>
+            </td>
+            <td class="px-3 py-4 text-right font-bold text-purple-300">{{ entry.score }}</td>
+            <td class="px-6 py-4 text-right text-gray-500 text-xs">
+              {{ entry.playedAt ? (entry.playedAt | date:'MMM d, y') : '—' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Typing Test ──────────────────────────────────────────────────── -->
+    <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+
+      <div class="px-6 py-5 border-b border-gray-800 bg-gradient-to-r from-purple-900/40 to-transparent">
+        <h2 class="text-xl font-bold tracking-wide flex items-center gap-2">
+          <span>⌨️</span> Typing Test
+        </h2>
+        <p class="text-gray-500 text-xs mt-1 uppercase tracking-widest">Higher WPM = better</p>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loadingTyping" class="p-8 text-center text-gray-600 text-sm">Loading...</div>
+
+      <!-- Empty -->
+      <div *ngIf="!loadingTyping && typingScores.length === 0" class="p-8 text-center text-gray-600 text-sm">
+        No scores yet. Be the first!
+      </div>
+
+      <!-- Table -->
+      <table *ngIf="!loadingTyping && typingScores.length > 0" class="w-full text-sm">
+        <thead>
+          <tr class="text-gray-500 uppercase text-xs tracking-wider border-b border-gray-800">
+            <th class="px-4 py-3 text-left w-12">#</th>
+            <th class="px-2 py-3 text-left">Player</th>
+            <th class="px-2 py-3 text-right">WPM</th>
+            <th class="px-2 py-3 text-right">Acc</th>
+            <th class="px-4 py-3 text-right">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of typingScores; let i = index"
+              class="border-b border-gray-800/50 transition-colors"
+              [class.bg-[#53a6eb]/5]="entry.username === currentUser"
+              [class.hover:bg-gray-800/40]="entry.username !== currentUser"
+              [class.hover:bg-[#53a6eb]/10]="entry.username === currentUser">
+            <td class="px-4 py-4 text-center text-lg">{{ rankLabel(i) }}</td>
+            <td class="px-2 py-4 font-semibold">
+              <div class="flex items-center gap-2">
+                {{ entry.username }}
+                <span *ngIf="entry.username === currentUser"
+                      class="text-[10px] bg-[#53a6eb]/20 text-[#53a6eb] px-2 py-0.5 rounded-full font-normal">you</span>
+              </div>
+              <div class="text-gray-600 text-xs mt-0.5">{{ entry.duration }}s</div>
+            </td>
+            <td class="px-2 py-4 text-right font-bold text-[#53a6eb] text-base">{{ entry.score }}</td>
+            <td class="px-2 py-4 text-right text-green-400 font-medium">{{ entry.accuracy }}%</td>
+            <td class="px-4 py-4 text-right text-gray-500 text-xs">
+              {{ entry.playedAt ? (entry.playedAt | date:'MMM d, y') : '—' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

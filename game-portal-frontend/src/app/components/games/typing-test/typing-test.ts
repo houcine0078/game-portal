@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../services/auth';
+import { ScoreService } from '../../../services/score';
 
 interface TypingWord {
   target: string;
@@ -36,33 +38,31 @@ export class TypingTestComponent implements OnInit, OnDestroy {
 
   readonly TIME_OPTIONS: number[] = [30, 60, 120];
 
-  // --- Word state ---
   words: TypingWord[] = [];
   wordIndex = 0;
 
-  // --- Game state ---
   status: GameStatus = 'waiting';
   selectedTime = 30;
   timeLeft = 30;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
 
-  // --- Stats ---
   wpm = 0;
   accuracy = 0;
   correctWords = 0;
   correctChars = 0;
 
-  // --- Live tracking ---
   liveWpm = 0;
   liveAccuracy: string = '—';
   progress = 0;
 
-  // --- WPM history for chart ---
   wpmHistory: number[] = [];
   private secondsElapsed = 0;
   private correctCharsTotal = 0;
 
-  // ─── Lifecycle ────────────────────────────────────────────────────────────
+  constructor(
+    private authService: AuthService,
+    private scoreService: ScoreService
+  ) {}
 
   ngOnInit(): void {
     this.generateWords();
@@ -72,16 +72,12 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     this.clearTimer();
   }
 
-  // ─── Word generation ──────────────────────────────────────────────────────
-
   generateWords(): void {
     this.words = Array.from({ length: 120 }, () => ({
       target: this.DICTIONARY[Math.floor(Math.random() * this.DICTIONARY.length)],
       typed: '',
     }));
   }
-
-  // ─── Keyboard handler ─────────────────────────────────────────────────────
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent): void {
@@ -93,7 +89,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
 
     if (this.status === 'finished') return;
 
-    // Begin on first real keystroke
     if (this.status === 'waiting' && event.key.length === 1 && event.key !== ' ') {
       this.startGame();
     }
@@ -126,8 +121,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     this.updateLiveStats();
   }
 
-  // ─── Game flow ────────────────────────────────────────────────────────────
-
   startGame(): void {
     this.status = 'playing';
     this.wpmHistory = [];
@@ -138,7 +131,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
       this.timeLeft--;
       this.secondsElapsed++;
 
-      // Snapshot WPM each second for chart
       const elapsed = this.secondsElapsed / 60;
       const snapshot = Math.round((this.correctCharsTotal / 5) / elapsed);
       this.wpmHistory.push(snapshot);
@@ -151,6 +143,7 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     this.status = 'finished';
     this.clearTimer();
     this.calculateStats();
+    this.saveScore();
   }
 
   calculateStats(): void {
@@ -169,7 +162,7 @@ export class TypingTestComponent implements OnInit, OnDestroy {
       }
 
       if (i < this.wordIndex && w.typed === w.target) {
-        totalCorrect++;  // space counted as correct
+        totalCorrect++;
         totalTyped++;
         words++;
       }
@@ -180,6 +173,18 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     this.accuracy = totalTyped === 0 ? 0 : Math.round((totalCorrect / totalTyped) * 100);
     this.correctWords = words;
     this.correctChars = totalCorrect;
+  }
+
+  saveScore(): void {
+    const username = this.authService.getUsername();
+    if (!username) return;
+    this.scoreService.saveScore({
+      username,
+      gameType: 'typing-test',
+      score: this.wpm,
+      accuracy: this.accuracy,
+      duration: this.selectedTime
+    }).subscribe({ next: () => {}, error: () => {} });
   }
 
   setTime(seconds: number): void {
@@ -205,8 +210,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     this.generateWords();
   }
 
-  // ─── Live stats ───────────────────────────────────────────────────────────
-
   updateLiveStats(): void {
     let correct = 0;
     let total = 0;
@@ -227,12 +230,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     this.correctCharsTotal = correct;
   }
 
-  // ─── Template helpers ─────────────────────────────────────────────────────
-
-  /**
-   * Returns CSS class(es) for each character cell.
-   * Handles: correct, wrong, extra (beyond word length), pending.
-   */
   getCharClass(wordIdx: number, charIdx: number): string {
     const w = this.words[wordIdx];
     const typed = w.typed[charIdx];
@@ -242,10 +239,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     return typed === w.target[charIdx] ? 'char correct' : 'char wrong';
   }
 
-  /**
-   * Returns an array of character objects for a given word,
-   * including any extra characters typed beyond the word length.
-   */
   getChars(wordIdx: number): { display: string; class: string; isCursor: boolean }[] {
     const w = this.words[wordIdx];
     const len = Math.max(w.target.length, w.typed.length);
@@ -270,7 +263,6 @@ export class TypingTestComponent implements OnInit, OnDestroy {
       result.push({ display, class: cls, isCursor });
     }
 
-    // Trailing cursor when caret is past all chars
     if (wordIdx === this.wordIndex && w.typed.length >= len) {
       result.push({ display: '', class: 'char', isCursor: true });
     }
@@ -283,13 +275,10 @@ export class TypingTestComponent implements OnInit, OnDestroy {
     return wordIdx < this.wordIndex && w.typed !== w.target;
   }
 
-  /** Chart bar heights (px) normalised to max WPM in history. */
   get chartBars(): number[] {
     const max = Math.max(...this.wpmHistory, 1);
     return this.wpmHistory.map(v => Math.max(2, Math.round((v / max) * 60)));
   }
-
-  // ─── Private helpers ──────────────────────────────────────────────────────
 
   private clearTimer(): void {
     if (this.timerInterval !== null) {

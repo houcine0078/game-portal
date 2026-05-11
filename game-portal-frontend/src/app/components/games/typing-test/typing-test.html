@@ -99,7 +99,10 @@
       </div>
     </div>
 
-    <button class="restart-btn" (click)="restartGame()">try again →</button>
+    <div class="flex gap-4 justify-center">
+      <button class="restart-btn" (click)="restartGame()">try again →</button>
+      <button class="restart-btn" routerLink="/leaderboard" style="background:rgba(83,166,235,0.15);border-color:rgba(83,166,235,0.5);color:#53a6eb">leaderboard →</button>
+    </div>
 
   </div>
 

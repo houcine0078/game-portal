@@ -2,9 +2,12 @@ package com.example.game_portal.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Data // Lombok automatically creates getters and setters!
+@Data
 @Table(name = "users")
 public class User {
     @Id
@@ -16,4 +19,8 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }
