@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,6 +74,27 @@ public class ScoreController {
                 .map(s -> {
                     Map<String, Object> entry = new LinkedHashMap<>();
                     entry.put("username", s.getUser().getUsername());
+                    entry.put("score", s.getScore());
+                    if (s.getAccuracy() != null) entry.put("accuracy", s.getAccuracy());
+                    if (s.getDuration() != null) entry.put("duration", s.getDuration());
+                    entry.put("playedAt", s.getPlayedAt() != null ? s.getPlayedAt().toString() : null);
+                    return entry;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> getHistory(Principal principal) {
+        User user = userRepository.findByUsername(principal.getName()).orElse(null);
+        if (user == null) return ResponseEntity.notFound().build();
+
+        List<Score> scores = scoreRepository.findByUserOrderByPlayedAtDesc(user);
+        List<Map<String, Object>> result = scores.stream()
+                .map(s -> {
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    entry.put("gameType", s.getGameType());
                     entry.put("score", s.getScore());
                     if (s.getAccuracy() != null) entry.put("accuracy", s.getAccuracy());
                     if (s.getDuration() != null) entry.put("duration", s.getDuration());

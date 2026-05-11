@@ -15,4 +15,8 @@ export class ScoreService {
   getLeaderboard(gameType: string): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/leaderboard?game=${gameType}`);
   }
+
+  getHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/history`);
+  }
 }

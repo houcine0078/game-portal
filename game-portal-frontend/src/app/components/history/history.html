@@ -1,0 +1,96 @@
+<div class="min-h-screen bg-[#0f172a] p-8 font-sans text-white">
+
+  <!-- Header -->
+  <div class="max-w-3xl mx-auto mb-10 flex justify-between items-center border-b border-gray-800 pb-6">
+    <div>
+      <h1 class="text-4xl font-bold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#53a6eb] to-purple-400">
+        Game History
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">Every session you've played, most recent first</p>
+    </div>
+    <button routerLink="/catalog"
+            class="px-4 py-2 bg-gray-800 border border-gray-700 hover:bg-gray-700 text-gray-300 font-bold rounded-lg transition text-sm tracking-wider uppercase cursor-pointer">
+      ← Catalog
+    </button>
+  </div>
+
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Filter pills -->
+    <div class="flex gap-2 mb-6">
+      <button (click)="setFilter('all')"
+              class="px-4 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer border"
+              [class.bg-[#53a6eb]]="filter === 'all'"
+              [class.text-white]="filter === 'all'"
+              [class.border-[#53a6eb]]="filter === 'all'"
+              [class.bg-gray-800]="filter !== 'all'"
+              [class.text-gray-400]="filter !== 'all'"
+              [class.border-gray-700]="filter !== 'all'">
+        All ({{ allSessions.length }})
+      </button>
+      <button (click)="setFilter('memory-match')"
+              class="px-4 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer border"
+              [class.bg-[#53a6eb]]="filter === 'memory-match'"
+              [class.text-white]="filter === 'memory-match'"
+              [class.border-[#53a6eb]]="filter === 'memory-match'"
+              [class.bg-gray-800]="filter !== 'memory-match'"
+              [class.text-gray-400]="filter !== 'memory-match'"
+              [class.border-gray-700]="filter !== 'memory-match'">
+        🧩 Memory Match
+      </button>
+      <button (click)="setFilter('typing-test')"
+              class="px-4 py-1.5 rounded-full text-sm font-semibold transition cursor-pointer border"
+              [class.bg-[#53a6eb]]="filter === 'typing-test'"
+              [class.text-white]="filter === 'typing-test'"
+              [class.border-[#53a6eb]]="filter === 'typing-test'"
+              [class.bg-gray-800]="filter !== 'typing-test'"
+              [class.text-gray-400]="filter !== 'typing-test'"
+              [class.border-gray-700]="filter !== 'typing-test'">
+        ⌨️ Typing Test
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-20 text-gray-600">Loading...</div>
+
+    <!-- Empty state -->
+    <div *ngIf="!loading && sessions.length === 0"
+         class="text-center py-20 text-gray-600">
+      <p class="text-5xl mb-4">🎮</p>
+      <p class="text-lg font-semibold text-gray-500">No sessions yet</p>
+      <p class="text-sm text-gray-600 mt-1">Play a game to see your history here</p>
+    </div>
+
+    <!-- Session list -->
+    <div *ngIf="!loading && sessions.length > 0" class="space-y-3">
+      <div *ngFor="let s of sessions"
+           class="bg-gray-900 border border-gray-800 rounded-2xl px-6 py-4 flex items-center gap-5 hover:border-gray-700 transition">
+
+        <!-- Game icon -->
+        <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+             [class.bg-blue-900\/30]="s.gameType === 'memory-match'"
+             [class.bg-purple-900\/30]="s.gameType === 'typing-test'">
+          {{ gameIcon(s.gameType) }}
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-white tracking-wide">{{ gameLabel(s.gameType) }}</p>
+          <div class="flex items-center gap-3 mt-1 flex-wrap">
+            <span class="text-[#53a6eb] font-bold text-sm">{{ statLabel(s) }}</span>
+            <span *ngIf="s.accuracy != null" class="text-green-400 text-sm">{{ s.accuracy }}% acc</span>
+            <span *ngIf="s.duration != null" class="text-gray-500 text-xs">{{ s.duration }}s</span>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="text-right flex-shrink-0">
+          <p class="text-gray-400 text-sm">{{ s.playedAt | date:'MMM d, y' }}</p>
+          <p class="text-gray-600 text-xs mt-0.5">{{ s.playedAt | date:'h:mm a' }}</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
