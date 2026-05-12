@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '4.0.3'
+	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -24,20 +24,41 @@ repositories {
 }
 
 dependencies {
+	// Spring Data JPA — remplace JDBC/JPA manuel (EntityManagerFactory, DataSource, etc.)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Spring MVC — remplace le mapping manuel de Servlets dans web.xml
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Spring Security — remplace les filtres Servlet manuels et la gestion de session
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+	// Validation Bean (JSR-380) — active @Valid, @NotBlank, @Email sur les DTOs
+	// SANS SPRING : validation if/else manuelle dans chaque Servlet
+	// AVEC SPRING : validation automatique via @Valid + MethodArgumentNotValidException → 400
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Jackson pour la sérialisation JSON
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+	// Lombok — réduit le boilerplate (getters, setters, constructeurs)
 	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Hot reload en développement
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// Connecteur MySQL
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// JWT — JSON Web Token pour l'authentification stateless
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+
+	// Tests
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
