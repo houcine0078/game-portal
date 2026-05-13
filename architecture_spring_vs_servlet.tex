@@ -1,0 +1,338 @@
+\documentclass[11pt,a4paper]{article}
+
+% ─── Encodage & langue ────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+% ─── Mise en page ─────────────────────────────────────────────────────────────
+\usepackage[top=2cm, bottom=2cm, left=2.2cm, right=2.2cm]{geometry}
+\usepackage{parskip}
+\setlength{\parindent}{0pt}
+
+% ─── Couleurs & boîtes ────────────────────────────────────────────────────────
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{springgreen}{RGB}{109,179,63}
+\definecolor{j2eered}{RGB}{190,45,45}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{sectionblue}{RGB}{0,70,150}
+\definecolor{headerbg}{RGB}{30,30,30}
+
+% ─── Tableaux ─────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% ─── Listings ─────────────────────────────────────────────────────────────────
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single, framesep=3pt,
+  rulecolor=\color{gray!40},
+  breaklines=true, keepspaces=true,
+  columns=fullflexible,
+  showstringspaces=false,
+  keywordstyle=\color{sectionblue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{BrickRed},
+  numbers=none
+}
+
+% ─── Titres ───────────────────────────────────────────────────────────────────
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries\color{sectionblue}}{\thesection}{0.8em}{}[\vspace{-4pt}\color{sectionblue}\rule{\linewidth}{0.6pt}]
+\titleformat{\subsection}{\normalsize\bfseries\color{j2eered!80!black}}{\thesubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{14pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{2pt}
+
+% ─── Divers ───────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=sectionblue, pdftitle={Architecture Game Portal}}
+
+% ─── Commandes utilitaires ────────────────────────────────────────────────────
+\newcommand{\spring}[1]{\textcolor{springgreen}{\textbf{[Spring]}} #1}
+\newcommand{\jee}[1]{\textcolor{j2eered}{\textbf{[J2EE]}} #1}
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+% ─── En-tête de tableau coloré ────────────────────────────────────────────────
+\newcommand{\theadrow}[2]{%
+  \rowcolor{headerbg}\textcolor{white}{\textbf{#1}} & \textcolor{white}{\textbf{#2}}\\}
+\newcommand{\theadrowT}[3]{%
+  \rowcolor{headerbg}\textcolor{white}{\textbf{#1}} & \textcolor{white}{\textbf{#2}} & \textcolor{white}{\textbf{#3}}\\}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ─── Page de titre ────────────────────────────────────────────────────────────
+\begin{center}
+  {\LARGE\bfseries Architecture du projet Game Portal}\\[6pt]
+  {\large\color{sectionblue} Spring Boot 3.4.5 vs Servlet / J2EE}\\[4pt]
+  {\small Documentation pédagogique — 2026}
+\end{center}
+\vspace{6pt}
+\hrule height 1.5pt
+\vspace{10pt}
+
+\tableofcontents
+\vspace{6pt}
+\hrule
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Vue d'ensemble}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Le projet est une application full-stack : \textbf{Angular :4200} (frontend) + \textbf{Spring Boot :8080} (backend) + \textbf{MySQL} (base \code{game\_portal}).
+
+\begin{lstlisting}[language={}]
+Angular :4200  -->  SecurityFilterChain (Spring Security)
+                        |
+               +---------+----------+
+               |         |          |
+         AuthController  GameController  ScoreController  (Spring MVC)
+               |         |          |
+         AuthService   GameIntegrationService             (Services)
+               |         |          |
+         UserRepo    GameRepo    ScoreRepo                (Spring Data JPA)
+               |
+           MySQL (tables : users, games, scores)
+\end{lstlisting}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{4.8cm} X}
+\theadrow{Dépendance Spring Boot}{Rôle}
+\code{spring-boot-starter-web}       & Spring MVC — remplace le mapping Servlet dans \code{web.xml} \\
+\code{spring-boot-starter-data-jpa}  & Hibernate/JPA — remplace JDBC + \code{persistence.xml} \\
+\code{spring-boot-starter-security}  & Filtres, BCrypt, contrôle d'accès — remplace les filtres manuels \\
+\code{spring-boot-starter-validation}& \code{@Valid}, \code{@NotBlank} — remplace les validations \code{if/else} \\
+\code{jjwt-api / jjwt-impl}          & Génération et validation des tokens JWT \\
+\code{lombok}                        & Génère getters/setters/constructeurs automatiquement \\
+\bottomrule
+\end{tabularx}
+\caption{Dépendances principales}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Spring MVC — Couche Contrôleurs}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\spring{Un seul \code{@RestController} regroupe tous les endpoints d'un domaine.}
+
+\jee{Chaque endpoint = une classe \code{HttpServlet} + une entrée dans \code{web.xml}.}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{4.8cm} X}
+\theadrow{Annotation Spring MVC}{Équivalent J2EE}
+\code{@RestController}               & \code{extends HttpServlet} + \code{resp.setContentType("application/json")} \\
+\code{@RequestMapping("/api/auth")}  & \code{<url-pattern>} dans \code{web.xml} \\
+\code{@PostMapping}, \code{@GetMapping} & \code{doPost()}, \code{doGet()} dans la Servlet \\
+\code{@RequestBody RegisterRequest}  & Lecture manuelle via \code{request.getReader()} + \code{new JSONObject()} \\
+\code{@Valid}                        & Chaîne \code{if/else} de validation répétée dans chaque Servlet \\
+\code{@RequestParam String game}     & \code{request.getParameter("game")} \\
+\code{@AuthenticationPrincipal User} & \code{(User) request.getAttribute("currentUser")} (propagé manuellement) \\
+\code{ResponseEntity.ok(body)}       & \code{resp.setStatus(200); resp.getWriter().write(json)} \\
+Jackson (auto)                       & \code{StringBuilder} JSON + méthode \code{escapeJson()} — fragile \\
+\bottomrule
+\end{tabularx}
+\caption{Annotations Spring MVC vs J2EE}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Spring Data JPA — Couche Persistance}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\spring{\code{JpaRepository} : interface de 5 lignes, Spring génère tout le SQL.}
+
+\jee{\code{UserDAO} : classe de 120 lignes JDBC (connexion, \code{PreparedStatement}, \code{ResultSet}, fermeture).}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{5cm} X}
+\theadrow{Spring Data JPA}{Équivalent JDBC J2EE}
+\code{findByUsername(String u)}            & \code{SELECT * FROM users WHERE username=?} + mapping \code{ResultSet} \\
+\code{existsByEmail(String e)}             & \code{SELECT COUNT(*) FROM users WHERE email=?} \\
+\code{save(user)}                          & \code{INSERT} ou \code{UPDATE} avec \code{PreparedStatement} \\
+\code{findByUserOrderByPlayedAtDesc(user)} & \code{SELECT * FROM scores WHERE user\_id=? ORDER BY played\_at DESC} \\
+Pool HikariCP (auto)                       & \code{DriverManager.getConnection()} — nouvelle connexion à chaque appel \\
+\code{@Transactional}                      & \code{conn.commit()} / \code{conn.rollback()} manuels \\
+\midrule
+\code{@Entity @Table(name="users")}        & Script SQL \code{CREATE TABLE users (...)} exécuté manuellement \\
+\code{@Column(unique=true, length=50)}     & \code{VARCHAR(50) UNIQUE} dans le DDL \\
+\code{@GeneratedValue(IDENTITY)}           & \code{AUTO\_INCREMENT} + \code{getGeneratedKeys()} \\
+\code{@ManyToOne @JoinColumn("user\_id")}  & \code{FOREIGN KEY} + \code{JOIN} SQL + mapping des deux objets \\
+\code{@CreationTimestamp}                  & \code{NOW()} dans l'\code{INSERT} \\
+\code{ddl-auto=update}                     & Script \code{schema.sql} exécuté manuellement \\
+\bottomrule
+\end{tabularx}
+\caption{Spring Data JPA / Hibernate vs JDBC J2EE}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Spring Security — Couche Sécurité}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{Flux d'authentification (JWT)}
+
+\begin{lstlisting}[language={}]
+POST /api/auth/login
+  --> AuthenticationManager.authenticate()
+        --> UserDetailsServiceImpl.loadUserByUsername()  [DB]
+        --> BCryptPasswordEncoder.matches()
+  --> jwtUtil.generateToken(user)  -->  JWT signe HS256 (24h)
+  <-- { token, username, role }
+
+GET /api/scores/history  + Header: Authorization: Bearer <token>
+  --> JwtAuthFilter
+        --> jwtUtil.extractUsername(token)
+        --> jwtUtil.validateToken(token, userDetails)
+        --> SecurityContextHolder.setAuthentication(authToken)
+  --> @AuthenticationPrincipal User currentUser  (injecte depuis SecurityContext)
+\end{lstlisting}
+
+\subsection{Tableau comparatif}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{5cm} X}
+\theadrow{Spring Security}{Équivalent J2EE}
+\code{SecurityFilterChain} (1 classe) & \code{web.xml} + 3--4 classes \code{Filter} séparées \\
+\code{.permitAll()}                    & Routes exclues du \code{<url-pattern>} dans \code{web.xml} \\
+\code{.hasRole("ADMIN")}               & \code{if (!"ADMIN".equals(session.getAttribute("role")))} répété partout \\
+\code{.authenticated()}                & \code{if (session == null) sendError(401)} dans chaque Servlet \\
+\code{SessionCreationPolicy.STATELESS} & Pas d'équivalent — session HTTP créée par défaut \\
+\code{BCryptPasswordEncoder}           & \code{MessageDigest SHA-256} sans sel — vulnérable aux rainbow tables \\
+\code{OncePerRequestFilter}            & \code{javax.servlet.Filter} sans garantie d'exécution unique \\
+\code{SecurityContextHolder}           & \code{request.setAttribute("currentUser", user)} manuel \\
+\code{@PreAuthorize("hasRole('ADMIN')")} & Vérification \code{if/else} répétée dans chaque Servlet admin \\
+\bottomrule
+\end{tabularx}
+\caption{Spring Security vs filtres J2EE}
+\end{table}
+
+\subsection{JWT vs Session HTTP}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{3.5cm} X X}
+\theadrowT{Critère}{JWT (Spring)}{Session HTTP (J2EE)}
+Identifiant        & En-tête \code{Authorization: Bearer} & Cookie \code{JSESSIONID} \\
+Stockage serveur   & Aucun (stateless)             & En mémoire / Redis \\
+Scalabilité        & Horizontale sans config       & Sticky sessions ou Redis \\
+CSRF               & Impossible (pas de cookie)    & Possible \\
+Révocation         & Difficile (blacklist)         & Immédiate (\code{session.invalidate()}) \\
+Contenu            & Username + rôle inclus        & ID de session seulement \\
+\bottomrule
+\end{tabularx}
+\caption{JWT vs Session HTTP}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Services — Logique Métier}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{5cm} X}
+\theadrow{Spring (AuthService)}{J2EE (RegisterServlet)}
+\code{@Transactional} — rollback auto    & Pas de transaction — état incohérent possible \\
+\code{passwordEncoder.encode(pwd)}       & \code{MessageDigest SHA-256} sans sel \\
+\code{userRepository.save(user)}         & \code{INSERT} JDBC \textasciitilde15 lignes \\
+\code{authenticationManager.authenticate()} & \code{SELECT} + comparaison hash manuelle \\
+2 méthodes claires, \textasciitilde60 lignes & 2 Servlets \textasciitilde140 lignes au total \\
+\midrule
+\multicolumn{2}{l}{\textbf{GameIntegrationService — Appel API externe}} \\
+\midrule
+\code{restTemplate.getForObject(url, JsonNode.class)} — 1 ligne & \code{HttpURLConnection} + \code{BufferedReader} — \textasciitilde25 lignes \\
+Jackson désérialise en \code{JsonNode} automatiquement & \code{new JSONArray(body)} — parsing champ par champ \\
+\code{@Slf4j} : \code{log.info/error()} avec niveau et contexte & \code{System.out.println()} — sans niveau ni contexte \\
+\bottomrule
+\end{tabularx}
+\caption{Spring Services vs logique dans les Servlets J2EE}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Bean Validation et Gestion des Erreurs}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\spring{\code{@NotBlank}, \code{@Email}, \code{@Size} sur le DTO + \code{@Valid} dans le contrôleur.}
+
+\jee{\textasciitilde20 lignes de \code{if/else} par Servlet, dupliquées partout.}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{3.5cm} L{2.5cm} X}
+\theadrowT{Exception Spring}{Statut HTTP}{Équivalent J2EE}
+\code{MethodArgumentNotValidException} & 400 + détails & \code{if/else} de validation dans chaque Servlet \\
+\code{AccessDeniedException}           & 403 JSON      & \code{sendError(403)} répété dans chaque Servlet admin \\
+\code{AuthenticationException}         & 401 JSON      & \code{if (session==null) sendError(401)} \\
+\code{Exception} (filet)               & 500 JSON      & Page HTML Tomcat avec stacktrace — fuite d'info \\
+\bottomrule
+\end{tabularx}
+\caption{\code{@RestControllerAdvice} vs gestion d'erreurs J2EE}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Lombok}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{L{4.8cm} X}
+\theadrow{Annotation Lombok}{Code Java généré}
+\code{@Data}               & Getters, setters, \code{equals()}, \code{hashCode()}, \code{toString()} \\
+\code{@Builder}            & Pattern Builder : \code{User.builder().username("a").build()} \\
+\code{@RequiredArgsConstructor} & Constructeur pour champs \code{final} — injection de dépendances \\
+\code{@Slf4j}              & \code{private static final Logger log = LoggerFactory.getLogger(…)} \\
+\bottomrule
+\end{tabularx}
+\caption{Annotations Lombok}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Bilan général}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{L{5.5cm} L{2.8cm} X}
+\theadrowT{Fonctionnalité}{Spring Boot}{J2EE équivalent}
+Démarrage serveur              & 1 ligne \code{main()} & Déploiement \code{.war} + config Tomcat \\
+Sécurité complète              & 60 lignes             & \code{web.xml} + 3 Filter + code inline — 400+ lignes \\
+CRUD utilisateurs              & 10 lignes             & \code{UserDAO} — 120 lignes JDBC \\
+1 endpoint REST                & 3 lignes              & 1 Servlet + \code{web.xml} + JSON manuel \\
+Validation des entrées         & 3 annotations         & 20 \code{if/else} par Servlet \\
+Gestion des erreurs            & 1 classe globale      & \code{try/catch} copié dans chaque Servlet \\
+Appel API externe              & 1 ligne               & \code{HttpURLConnection} — 25 lignes \\
+Encodage mot de passe          & BCrypt (sel auto)     & SHA-256 sans sel — vulnérable \\
+\bottomrule
+\end{tabularx}
+\caption{Comparaison globale Spring Boot vs J2EE}
+\end{table}
+
+\vspace{8pt}
+\noindent\textbf{Avantages clés de Spring Boot :}
+\begin{enumerate}[leftmargin=*, itemsep=2pt]
+  \item \textbf{Configuration centralisée} : sécurité, CORS et routes dans une seule classe.
+  \item \textbf{IoC / Injection de dépendances} : classes découplées et testables unitairement.
+  \item \textbf{Spring Data JPA} : SQL généré automatiquement, HikariCP intégré.
+  \item \textbf{Sécurité robuste} : BCrypt résistant aux rainbow tables, JWT stateless scalable.
+  \item \textbf{Séparation des responsabilités} : Controller $\to$ Service $\to$ Repository — pas de logique dans les Servlets.
+  \item \textbf{Erreurs unifiées} : \code{@RestControllerAdvice} retourne toujours du JSON structuré.
+\end{enumerate}
+
+\end{document}

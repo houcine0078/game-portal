@@ -5,152 +5,44 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * DTO (Data Transfer Object) pour la requête d'inscription.
- *
- * =========================================================
- * SANS SPRING :
- * =========================================================
- *   Les données d'inscription proviendraient d'un formulaire HTML (POST)
- *   ou d'un corps JSON lu manuellement dans une Servlet :
- *
- *     // Dans RegisterServlet.doPost() :
- *     String username = request.getParameter("username");  // formulaire HTML
- *     String email    = request.getParameter("email");
- *     String password = request.getParameter("password");
- *
- *     // Ou avec JSON brut (sans bibliothèque) :
- *     StringBuilder sb = new StringBuilder();
- *     BufferedReader reader = request.getReader();
- *     String line;
- *     while ((line = reader.readLine()) != null) sb.append(line);
- *     // Puis parsing manuel ou via JSONObject de org.json
- *
- *     // Validation manuelle :
- *     if (username == null || username.isEmpty()) {
- *         response.sendError(400, "Username requis");
- *         return;
- *     }
- *     if (!email.contains("@")) {
- *         response.sendError(400, "Email invalide");
- *         return;
- *     }
- *
- * =========================================================
- * AVEC SPRING :
- * =========================================================
- *   @RequestBody RegisterRequest req  →  Jackson désérialise le JSON automatiquement
- *   @Valid                           →  Bean Validation vérifie les contraintes
- *   @NotBlank, @Email, @Size        →  annotations de validation standard (JSR-380)
- *
- * =========================================================
- * AVANTAGES SPRING :
- * =========================================================
- *   1. Désérialisation JSON automatique par Jackson (pas de parsing manuel)
- *   2. Validation déclarative via annotations (pas de if/else de validation)
- *   3. Messages d'erreur structurés automatiquement (BindingResult / @ExceptionHandler)
- *   4. Le DTO isole l'API de l'entité interne (on n'expose pas User directement)
- *   5. Typage fort : pas de NullPointerException sur request.getParameter()
- */
 @Data
 public class RegisterRequest {
 
-    @NotBlank(message = "Le nom d'utilisateur est obligatoire")
-    @Size(min = 3, max = 50, message = "Le nom doit contenir entre 3 et 50 caractères")
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
 
-    @NotBlank(message = "L'email est obligatoire")
-    @Email(message = "Format d'email invalide")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 }
 
 /*
- * =====================================================================
- * ÉQUIVALENT J2EE / SERVLET — Lecture et validation manuelle des données
- * =====================================================================
+ * Without Spring, there is no DTO with automatic validation.
+ * All validation is written manually inside the Servlet:
  *
- * En J2EE, il n'existe pas de DTO avec validation automatique.
- * Les données sont lues depuis HttpServletRequest et validées à la main
- * directement dans la Servlet, sans classe dédiée.
+ *   // Read the JSON body manually
+ *   StringBuilder body = new StringBuilder();
+ *   String line;
+ *   while ((line = request.getReader().readLine()) != null) body.append(line);
+ *   JSONObject json = new JSONObject(body.toString());
+ *   String username = json.optString("username", "").trim();
+ *   String email    = json.optString("email",    "").trim();
+ *   String password = json.optString("password", "").trim();
  *
- * EXTRACTION ET VALIDATION DANS RegisterServlet.doPost() :
- * ---------------------------------------------------------------------
- *
- *   import jakarta.servlet.*;
- *   import jakarta.servlet.http.*;
- *   import jakarta.servlet.annotation.WebServlet;
- *   import java.io.*;
- *   import java.util.regex.Pattern;
- *
- *   @WebServlet("/api/auth/register")
- *   public class RegisterServlet extends HttpServlet {
- *
- *       private static final Pattern EMAIL_PATTERN =
- *           Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
- *
- *       @Override
- *       protected void doPost(HttpServletRequest request, HttpServletResponse response)
- *               throws ServletException, IOException {
- *
- *           response.setContentType("application/json");
- *           response.setCharacterEncoding("UTF-8");
- *
- *           // --- Lecture du corps JSON brut ---
- *           // Spring fait cela automatiquement avec @RequestBody
- *           StringBuilder body = new StringBuilder();
- *           try (BufferedReader reader = request.getReader()) {
- *               String line;
- *               while ((line = reader.readLine()) != null) body.append(line);
- *           }
- *
- *           // --- Parsing JSON manuel (avec org.json) ---
- *           // Spring utilise Jackson automatiquement
- *           String username, email, password;
- *           try {
- *               org.json.JSONObject json = new org.json.JSONObject(body.toString());
- *               username = json.optString("username", "").trim();
- *               email    = json.optString("email",    "").trim();
- *               password = json.optString("password", "").trim();
- *           } catch (org.json.JSONException e) {
- *               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
- *               response.getWriter().write("{\"error\":\"JSON invalide\"}");
- *               return;
- *           }
- *
- *           // --- Validation manuelle (Spring fait cela avec @Valid + @NotBlank) ---
- *           if (username.isEmpty()) {
- *               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
- *               response.getWriter().write("{\"error\":\"Le nom d'utilisateur est obligatoire\"}");
- *               return;
- *           }
- *           if (username.length() < 3 || username.length() > 50) {
- *               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
- *               response.getWriter().write("{\"error\":\"Le nom doit contenir entre 3 et 50 caractères\"}");
- *               return;
- *           }
- *           if (email.isEmpty() || !EMAIL_PATTERN.matcher(email).matches()) {
- *               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
- *               response.getWriter().write("{\"error\":\"Format d'email invalide\"}");
- *               return;
- *           }
- *           if (password.length() < 6) {
- *               response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
- *               response.getWriter().write("{\"error\":\"Le mot de passe doit avoir au moins 6 caractères\"}");
- *               return;
- *           }
- *
- *           // --- Ici commence la logique d'insertion (voir RegisterServlet complet) ---
- *           // ...
- *       }
+ *   // Validate manually — repeated for every field, in every Servlet
+ *   if (username.length() < 3) {
+ *       response.setStatus(400);
+ *       response.getWriter().write("{\"error\":\"Username must be at least 3 characters\"}");
+ *       return;
  *   }
+ *   if (!email.contains("@")) { ... }
+ *   if (password.length() < 6) { ... }
  *
- * RÉSUMÉ DES DIFFÉRENCES :
- *   Spring @RequestBody + @Valid : 3 lignes dans le contrôleur → validation + désérialisation auto
- *   J2EE                        : ~50 lignes de lecture/parsing/validation dans chaque Servlet
- *   Le DTO Spring centralise la structure ; J2EE répète ce code dans chaque Servlet concernée
- * =====================================================================
+ * With Spring, @RequestBody reads the JSON automatically, @Valid runs all the
+ * annotation checks, and any failure returns a 400 with the error messages — no if/else needed.
  */

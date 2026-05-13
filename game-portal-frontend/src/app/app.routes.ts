@@ -6,7 +6,9 @@ import { MemoryMatchComponent } from './components/games/memory-match/memory-mat
 import { TypingTestComponent } from './components/games/typing-test/typing-test';
 import { LeaderboardComponent } from './components/leaderboard/leaderboard';
 import { HistoryComponent } from './components/history/history';
+import { AdminComponent } from './components/admin/admin';
 import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
@@ -17,5 +19,6 @@ export const routes: Routes = [
     { path: 'typing-test', component: TypingTestComponent, canActivate: [authGuard] },
     { path: 'leaderboard', component: LeaderboardComponent, canActivate: [authGuard] },
     { path: 'history', component: HistoryComponent, canActivate: [authGuard] },
+    { path: 'admin', component: AdminComponent, canActivate: [adminGuard] },
     { path: '**', redirectTo: '/login' }
 ];

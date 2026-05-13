@@ -11,7 +11,7 @@ export class AuthService {
   constructor(private http: HttpClient) { }
 
   register(user: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}/register`, user, { responseType: 'text' });
+    return this.http.post(`${this.baseUrl}/register`, user);
   }
 
   login(credentials: any): Observable<any> {
@@ -38,9 +38,22 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
+  saveRole(role: string): void {
+    localStorage.setItem('role', role);
+  }
+
+  getRole(): string | null {
+    return localStorage.getItem('role');
+  }
+
+  isAdmin(): boolean {
+    return this.getRole() === 'ADMIN';
+  }
+
   logout(): void {
     localStorage.removeItem('username');
     localStorage.removeItem('token');
+    localStorage.removeItem('role');
   }
 
   saveAvatarColor(colorId: string): void {

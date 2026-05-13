@@ -91,4 +91,8 @@ export class CatalogComponent implements OnInit {
   get initials(): string {
     return this.userProfile?.username?.charAt(0).toUpperCase() ?? 'P';
   }
+
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 @Table(name = "games")
 public class Game {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,17 +19,11 @@ public class Game {
     private String description;
 
     private String category;
-
-    // This will hold the URL for the game's cover art/thumbnail
     private String thumbnailUrl;
-
-    // This would be the link to the actual HTML5 game file or external link
     private String gameUrl;
-
     private String iframeUrl;
 
     public void setIframeUrl(String iframeUrl) {
         this.iframeUrl = iframeUrl;
     }
-
 }

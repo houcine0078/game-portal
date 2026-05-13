@@ -34,6 +34,11 @@
         </div>
 
         <div>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="Email Address"
+                 class="w-full px-6 py-4 rounded-full bg-black/10 border-2 border-white/50 text-white placeholder-white/70 focus:outline-none focus:border-white focus:bg-white/20 transition-all duration-300">
+        </div>
+
+        <div>
           <input type="password" [(ngModel)]="password" name="password" placeholder="Choose Password"
                  class="w-full px-6 py-4 rounded-full bg-black/10 border-2 border-white/50 text-white placeholder-white/70 focus:outline-none focus:border-white focus:bg-white/20 transition-all duration-300">
         </div>
@@ -44,10 +49,19 @@
         </button>
       </form>
 
-      <p *ngIf="message" class="mt-6 font-bold tracking-wide" 
-         [ngClass]="{'text-green-300': message.includes('Created'), 'text-red-300': message.includes('Error')}">
-        {{ message }}
+      <!-- Success -->
+      <p *ngIf="successMessage" class="mt-6 font-bold tracking-wide text-green-300">
+        {{ successMessage }}
       </p>
+
+      <!-- Validation / business errors -->
+      <ul *ngIf="errors.length > 0" class="mt-6 space-y-1">
+        <li *ngFor="let err of errors"
+            class="flex items-start gap-2 text-sm font-semibold text-red-300">
+          <span class="mt-0.5">⚠</span>
+          <span>{{ err }}</span>
+        </li>
+      </ul>
 
       <div class="absolute bottom-8 text-center w-full">
         <p class="text-white/80 text-base">Already a member? 
